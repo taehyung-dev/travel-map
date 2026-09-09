@@ -58,6 +58,46 @@ body {
   margin: 10px 0 32px;
 }
 
+.id-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 280px;
+  margin-bottom: 24px;
+}
+
+.id-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.id-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 15px;
+  text-align: center;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: inherit;
+}
+
+.id-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.id-hint {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin: 8px 0 0;
+}
+
 .landing-cta {
   display: inline-flex;
   align-items: center;
@@ -92,6 +132,25 @@ body {
   font-weight: 700;
   margin: 0;
   letter-spacing: -0.01em;
+}
+
+.user-id-chip {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 12px;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-id-chip:empty {
+  display: none;
 }
 
 #map {

@@ -10,6 +10,7 @@
 <body>
   <header class="topbar">
     <h1>여행 지도</h1>
+    <button class="user-id-chip" id="userIdChip" type="button" title="아이디 변경"></button>
   </header>
 
   <main id="map"></main>
@@ -33,6 +34,10 @@
   <script src="data/regions.data.js"></script>
   <script src="data/landmarks.js"></script>
   <script src="data/landmark-images.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="cloud-sync.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

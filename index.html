@@ -13,7 +13,29 @@
     </svg>
     <h1 class="landing-title">여행 지도</h1>
     <p class="landing-subtitle">지역을 눌러 대표 명소를 만나보세요</p>
-    <a class="landing-cta" href="map.html">지도 시작하기</a>
+
+    <div class="id-box">
+      <label class="id-label" for="userIdInput">나만의 아이디</label>
+      <input
+        class="id-input"
+        id="userIdInput"
+        type="text"
+        placeholder="예: taehyung"
+        maxlength="40"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+      />
+      <p class="id-hint">
+        아이디로 내 기록을 다른 기기에서도 이어볼 수 있어요.<br />
+        (비밀번호는 없어요 - 같은 아이디를 입력하면 누구나 볼 수 있으니
+        나만 아는 아이디를 사용하세요)
+      </p>
+    </div>
+
+    <a class="landing-cta" id="startBtn" href="map.html">지도 시작하기</a>
   </main>
+
+  <script src="app-id.js"></script>
 </body>
 </html>

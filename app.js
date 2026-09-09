@@ -22,11 +22,13 @@
   }
 
   function saveRevealedIds() {
+    var ids = Object.keys(activeReveals);
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(Object.keys(activeReveals)));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
     } catch (e) {
       /* storage unavailable, ignore */
     }
+    if (window.CloudSync) window.CloudSync.saveRevealed(ids);
   }
 
   function styleFor() {
@@ -225,11 +227,25 @@
 
   var layersById = {}; // id -> { feature, layer } - for restoring saved reveals
 
-  function restoreReveals() {
-    loadRevealedIds().forEach(function (id) {
+  function revealIds(ids) {
+    ids.forEach(function (id) {
+      if (activeReveals[id]) return;
       var entry = layersById[id];
       if (entry) revealRegion(entry.feature, entry.layer);
     });
+  }
+
+  function restoreReveals() {
+    revealIds(loadRevealedIds());
+    // Cloud data (another device, or this browser after a cache clear)
+    // arrives later than the instant localStorage restore above - merge it
+    // in as a union rather than replacing, so nothing already open here
+    // gets closed by a slower/stale cloud read.
+    if (window.CloudSync) {
+      window.CloudSync.loadRevealed().then(function (ids) {
+        if (ids) revealIds(ids);
+      });
+    }
   }
 
   var geoLayer = L.geoJSON(data, {
@@ -292,6 +308,14 @@
     if (!window.confirm("열려있는 명소 이미지를 모두 닫을까요?")) return;
     clearAllReveals();
   });
+
+  var userIdChip = document.getElementById("userIdChip");
+  if (userIdChip && window.CloudSync) {
+    userIdChip.textContent = window.CloudSync.userId;
+    userIdChip.addEventListener("click", function () {
+      window.CloudSync.changeUserId();
+    });
+  }
 
   // The initial view skips a few far-flung islands (Ulleungdo/Dokdo,
   // Baengnyeongdo) that would otherwise force it to start zoomed way out;
