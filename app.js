@@ -4,7 +4,13 @@
   var UNVISITED_FILL = "#e9edf3";
   var UNVISITED_STROKE = "#c7cfda";
   var ACCENT = "#2563eb";
-  var STORAGE_KEY = "travelmap.revealed.v1";
+  // Scoped per user ID (when cloud sync is present) so switching IDs on the
+  // same browser doesn't show the previous ID's regions before the cloud
+  // fetch resolves, and doesn't bleed one ID's reveals into another's local
+  // cache. The Artifact build has no ID concept (window.CloudSync is
+  // undefined there), so it keeps the old unscoped key.
+  var STORAGE_KEY =
+    "travelmap.revealed.v1" + (window.CloudSync ? "." + window.CloudSync.userId : "");
 
   var data = window.REGIONS_GEOJSON;
 
