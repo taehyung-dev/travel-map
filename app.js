@@ -4,8 +4,30 @@
   var UNVISITED_FILL = "#e9edf3";
   var UNVISITED_STROKE = "#c7cfda";
   var ACCENT = "#2563eb";
+  var STORAGE_KEY = "travelmap.revealed.v1";
 
   var data = window.REGIONS_GEOJSON;
+
+  // Which regions are currently peeled open persists across page loads -
+  // without this, navigating to the landing page and back (a real page
+  // reload on the multi-page GitHub Pages site, unlike the single-file
+  // Artifact build where that's just an overlay toggle) reruns this whole
+  // script from scratch and any open reveals would silently vanish.
+  function loadRevealedIds() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveRevealedIds() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(Object.keys(activeReveals)));
+    } catch (e) {
+      /* storage unavailable, ignore */
+    }
+  }
 
   function styleFor() {
     return {
@@ -49,6 +71,7 @@
     r.clipShapeEl.parentNode.remove(); // the <clipPath> wrapping it
     r.layer._labelMarker.setTooltipContent(r.plainName);
     delete activeReveals[id];
+    saveRevealedIds();
   }
 
   function clearAllReveals() {
@@ -197,11 +220,22 @@
       layer: layer,
       plainName: plainName,
     };
+    saveRevealedIds();
+  }
+
+  var layersById = {}; // id -> { feature, layer } - for restoring saved reveals
+
+  function restoreReveals() {
+    loadRevealedIds().forEach(function (id) {
+      var entry = layersById[id];
+      if (entry) revealRegion(entry.feature, entry.layer);
+    });
   }
 
   var geoLayer = L.geoJSON(data, {
     style: styleFor,
     onEachFeature: function (feature, lyr) {
+      layersById[feature.properties.id] = { feature: feature, layer: lyr };
       lyr.on("click", function () {
         revealRegion(feature, lyr);
       });
@@ -296,6 +330,10 @@
     map.setMinZoom(map.getZoom());
     labelZoomThreshold = map.getZoom() + 2;
     updateLabelVisibility();
+    // Same rAF-after-view-change caution as the zoom resync above: give
+    // Leaflet a frame to finish writing projected path `d` attributes
+    // before revealRegion() reads them via getElement()/getBBox().
+    requestAnimationFrame(restoreReveals);
   }
 
   // #map's height comes from a flex layout; on first paint (or while the
