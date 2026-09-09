@@ -70,6 +70,15 @@
   // than clearing them, so they survive a zoom instead of just vanishing.
   var activeReveals = {}; // id -> { el, imageEl, clipShapeEl, layer, plainName }
 
+  // Fast repeated zoom gestures (scroll-wheel flicks, mobile pinch) can make
+  // Leaflet/the browser fire a spurious 'click' on the region layer sitting
+  // under the pointer as part of that same gesture - indistinguishable from
+  // a real click, so it would toggle an open reveal straight back off. A
+  // short cooldown spanning the zoom gesture (started on 'zoomstart', reset
+  // through the end of 'zoomend') absorbs that without blocking real clicks,
+  // which never land this close to a zoom.
+  var suppressClickUntil = 0;
+
   function clearOneReveal(id) {
     var r = activeReveals[id];
     if (!r) return;
@@ -136,7 +145,13 @@
     if (!r) return;
     var bbox = r.el.getBBox();
     if (!bbox.width || !bbox.height) {
-      clearOneReveal(id); // shape no longer renders (shouldn't normally happen)
+      // A mid-zoom read can race ahead of Leaflet's own path redraw and
+      // briefly see a stale/zero-size box - leaving the sticker at its
+      // last good position and retrying on the next zoomend is much safer
+      // than deleting it outright, since a delete here also erases it from
+      // this user's synced cloud record. Previously this called
+      // clearOneReveal(id), which is exactly the repeated "reveals vanish
+      // while zooming" bug users hit.
       return;
     }
     r.clipShapeEl.setAttribute("d", r.el.getAttribute("d"));
@@ -259,6 +274,7 @@
     onEachFeature: function (feature, lyr) {
       layersById[feature.properties.id] = { feature: feature, layer: lyr };
       lyr.on("click", function () {
+        if (Date.now() < suppressClickUntil) return;
         revealRegion(feature, lyr);
       });
       // Hover highlight is done with the CSS :hover pseudo-class (see
@@ -343,6 +359,13 @@
       .classList.toggle("show-labels", map.getZoom() >= labelZoomThreshold);
   }
   map.on("zoomend", updateLabelVisibility);
+
+  map.on("zoomstart", function () {
+    suppressClickUntil = Date.now() + 400;
+  });
+  map.on("zoomend", function () {
+    suppressClickUntil = Date.now() + 400;
+  });
 
   // Zooming makes Leaflet re-project and rewrite every path's `d` (panning
   // doesn't - it's just a shared CSS transform, so open reveals tag along
