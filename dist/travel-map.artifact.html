@@ -1940,13 +1940,16 @@ window.LANDMARK_IMAGES = {"해운대해수욕장":{"src":"data:image/jpeg;base64
     if (!r) return;
     var bbox = r.el.getBBox();
     if (!bbox.width || !bbox.height) {
-      // A mid-zoom read can race ahead of Leaflet's own path redraw and
-      // briefly see a stale/zero-size box - leaving the sticker at its
-      // last good position and retrying on the next zoomend is much safer
-      // than deleting it outright, since a delete here also erases it from
-      // this user's synced cloud record. Previously this called
-      // clearOneReveal(id), which is exactly the repeated "reveals vanish
-      // while zooming" bug users hit.
+      // Zero here isn't just a mid-zoom read racing ahead of Leaflet's own
+      // path redraw - Leaflet also clips each path's points to a padded
+      // box around the viewport for performance, so a region panned far
+      // enough off-screen legitimately has no geometry until it's back in
+      // range (see the 'moveend' listener below). Either way, leaving the
+      // sticker at its last good position and retrying next time this
+      // fires is much safer than deleting it outright, since a delete here
+      // also erases it from this user's synced cloud record. Previously
+      // this called clearOneReveal(id), which is exactly the repeated
+      // "reveals vanish while zooming" bug users hit.
       return;
     }
     r.clipShapeEl.setAttribute("d", r.el.getAttribute("d"));
@@ -2169,13 +2172,23 @@ window.LANDMARK_IMAGES = {"해운대해수욕장":{"src":"data:image/jpeg;base64
     suppressClickUntil = Date.now() + 500;
   });
 
-  // Zooming makes Leaflet re-project and rewrite every path's `d` (panning
-  // doesn't - it's just a shared CSS transform, so open reveals tag along
-  // for free). Bring any open reveal's clip shape and image/icon back in
-  // line with its region's new `d`/bbox once that settles. A rAF after
-  // 'zoomend' avoids a race where this runs before Leaflet has actually
-  // finished writing the new `d` attributes for that same event.
-  map.on("zoomend", function () {
+  // Zooming always re-projects and rewrites every path's `d`. Panning
+  // usually doesn't - it's just a shared CSS transform, so open reveals tag
+  // along for free - EXCEPT Leaflet also clips each path's points to a
+  // padded box around the current viewport for performance (see
+  // Path._clipPoints/clipPolygon in Leaflet's source): pan a revealed
+  // region far enough off-screen and Leaflet collapses its `d` to nothing,
+  // which is exactly why resyncOneReveal's zero-bbox guard skips it rather
+  // than deleting it. Panning back past that same boundary makes Leaflet
+  // restore the real `d` again - if that pan-back was pure pan (no zoom in
+  // between), only listening for 'zoomend' would never re-run the resync,
+  // leaving the clip shape/image stuck at whatever stale `d`/bbox they had
+  // from before the region went off-screen (from a possibly different zoom
+  // level entirely) - a huge, wrongly clipped/positioned sticker. Listening
+  // on 'moveend' instead covers both cases, since a zoom fires 'moveend'
+  // too. A rAF after it avoids a race where this runs before Leaflet has
+  // actually finished writing the new `d` attributes for that same event.
+  map.on("moveend", function () {
     requestAnimationFrame(resyncAllReveals);
   });
 
