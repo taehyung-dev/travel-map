@@ -70,13 +70,15 @@
   // than clearing them, so they survive a zoom instead of just vanishing.
   var activeReveals = {}; // id -> { el, imageEl, clipShapeEl, layer, plainName }
 
-  // Fast repeated zoom gestures (scroll-wheel flicks, mobile pinch) can make
-  // Leaflet/the browser fire a spurious 'click' on the region layer sitting
-  // under the pointer as part of that same gesture - indistinguishable from
-  // a real click, so it would toggle an open reveal straight back off. A
-  // short cooldown spanning the zoom gesture (started on 'zoomstart', reset
-  // through the end of 'zoomend') absorbs that without blocking real clicks,
-  // which never land this close to a zoom.
+  // Fast zoom gestures (scroll-wheel flicks, mobile pinch) can make
+  // Leaflet/the browser fire a spurious 'click' on whichever region layer
+  // ends up under the pointer as part of that same gesture -
+  // indistinguishable from a real click, so it would toggle an open reveal
+  // straight back off (confirmed by stress-testing dozens of rapid
+  // zoom-in/out cycles). Guarding on 'movestart'/'moveend' rather than
+  // 'zoomstart'/'zoomend' also covers plain panning/dragging - zooming
+  // fires these too - as a precaution against the same kind of stray click
+  // being possible from a pan/drag gesture, not just a zoom.
   var suppressClickUntil = 0;
 
   function clearOneReveal(id) {
@@ -360,11 +362,15 @@
   }
   map.on("zoomend", updateLabelVisibility);
 
-  map.on("zoomstart", function () {
-    suppressClickUntil = Date.now() + 400;
+  // 'movestart'/'moveend' cover panning as well as zooming (a zoom fires
+  // them too), so a drag/pinch-pan right before or after a zoom keeps
+  // re-arming this the whole time the view is unsettled, not just during
+  // the zoom itself.
+  map.on("movestart", function () {
+    suppressClickUntil = Date.now() + 500;
   });
-  map.on("zoomend", function () {
-    suppressClickUntil = Date.now() + 400;
+  map.on("moveend", function () {
+    suppressClickUntil = Date.now() + 500;
   });
 
   // Zooming makes Leaflet re-project and rewrite every path's `d` (panning
