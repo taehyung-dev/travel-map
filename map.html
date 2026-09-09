@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>여행 지도</title>
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>여행 지도</h1>
+  </header>
+
+  <main id="map"></main>
+
+  <footer class="toolbar">
+    <button class="tool-btn" id="resetBtn" type="button" title="전체 초기화">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <path fill="currentColor" d="M6 7h12l-1 13.02A2 2 0 0 1 15.01 22H8.99a2 2 0 0 1-1.99-1.98L6 7Zm3-4h6l1 2h4v2H4V5h4l1-2Z"/>
+      </svg>
+      <span>초기화</span>
+    </button>
+    <a class="tool-btn" href="index.html" title="메인페이지로">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <path fill="currentColor" d="M12 3.2 3 10.5v10.3h6v-6.4h6v6.4h6V10.5L12 3.2Z"/>
+      </svg>
+      <span>메인으로</span>
+    </a>
+  </footer>
+
+  <script src="vendor/leaflet/leaflet.js"></script>
+  <script src="data/regions.data.js"></script>
+  <script src="data/landmarks.js"></script>
+  <script src="data/landmark-images.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,219 @@
+:root {
+  color-scheme: light;
+  --bg: #f7f8fa;
+  --ink: #1f2430;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --surface: #ffffff;
+  --unvisited-fill: #e9edf3;
+  --unvisited-stroke: #c7cfda;
+  --accent: #2563eb;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overscroll-behavior: none;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo",
+    "Malgun Gothic", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.landing-body {
+  align-items: center;
+  justify-content: center;
+}
+
+.landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 32px;
+}
+
+.landing-icon {
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.landing-title {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 8px 0 0;
+}
+
+.landing-subtitle {
+  font-size: 15px;
+  color: var(--muted);
+  margin: 10px 0 32px;
+}
+
+.landing-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 32px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.landing-cta:active {
+  opacity: 0.85;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  padding-top: max(10px, env(safe-area-inset-top));
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  flex: 0 0 auto;
+  z-index: 20;
+}
+
+.topbar h1 {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+#map {
+  flex: 1 1 auto;
+  min-height: 0;
+  background: var(--bg);
+  outline: none;
+}
+
+.leaflet-container {
+  background: var(--bg);
+}
+
+.region-shape {
+  /* fill/stroke are set inline by Leaflet (from app.js) so the current
+     look always wins; a stylesheet rule for them here would override
+     those SVG presentation attributes regardless of specificity. Only
+     :hover is overridden below - native hover can't get stuck the way a
+     JS mouseover/mouseout pair tracking bringToFront() could. */
+  transition: fill 120ms ease, opacity 220ms ease;
+  cursor: pointer;
+}
+
+.region-shape:hover {
+  stroke: var(--accent);
+  stroke-width: 2px;
+}
+
+.region-shape.region-peeling {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: region-peel 320ms ease forwards;
+  filter: drop-shadow(0 8px 14px rgba(15, 18, 24, 0.35));
+}
+
+.region-reveal {
+  pointer-events: none;
+}
+
+@keyframes region-peel {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  45% {
+    transform: scale(1.07) rotate(-2deg);
+  }
+  100% {
+    transform: scale(1.03) rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .region-shape.region-peeling {
+    animation: none;
+  }
+}
+
+.region-name {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  font-size: 10px;
+  font-weight: 600;
+  color: #374151;
+  text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.region-name::before {
+  display: none;
+}
+
+#map:not(.show-labels) .region-name {
+  /* NOT display:none: Leaflet centers a permanent tooltip by reading its
+     own container's offsetWidth/offsetHeight every time it repositions
+     (see Tooltip._setPosition) - display:none makes that read 0, so a
+     tooltip that was ever hidden this way gets centered as if it had no
+     width (anchored at its left edge, not its middle) until some later
+     zoom/pan happens to recompute it. visibility:hidden keeps it in
+     layout (real, correct measurements) while still being invisible and
+     non-interactive. */
+  visibility: hidden;
+}
+
+.toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  padding: 10px 14px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  z-index: 20;
+}
+
+.tool-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 56px;
+  height: 44px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  border-radius: 10px;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 10px;
+  font-family: inherit;
+  text-decoration: none;
+}
+
+.tool-btn:active {
+  background: var(--line);
+}
+
+@media (min-width: 640px) {
+  .toolbar { padding: 12px 20px; }
+  .topbar { padding: 12px 20px; }
+}
